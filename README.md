@@ -37,16 +37,13 @@
 ### TCPでサーバーから取得するデータベース  
 次の3種類。指定方法はクライアントからデータの種類と文字コードを最初に送信。文字コードはutf-8かShitf_JIS。
 1. Robot List  
-　クライアントから"robot,utf-8"または"robot,Shift_JIS"と送信。
-　"ACK"が返ってきたあとに、Robot ListがXMLで返ってくる。
+　クライアントから"robot,utf-8"または"robot,Shift_JIS"と送信。"ACK"が返ってきたあとに、Robot ListがXMLで返ってくる。
 
 2. Team List  
-　クライアントから"team,utf-8"または"team,Shift_JIS"と送信。
-　"ACK"が返ってきたあとに、Team ListがXMLで返ってくる。
+　クライアントから"team,utf-8"または"team,Shift_JIS"と送信。"ACK"が返ってきたあとに、Team ListがXMLで返ってくる。
 
 3. Tournament Data  
-　クライアントから"tournament,utf-8"または"tournament,Shift_JIS"と送信。
-　"ACK"が返ってきたあとに、Tournament DataがXMLで返ってくる。
+　クライアントから"tournament,utf-8"または"tournament,Shift_JIS"と送信。"ACK"が返ってきたあとに、Tournament DataがXMLで返ってくる。
 
 
 ----
