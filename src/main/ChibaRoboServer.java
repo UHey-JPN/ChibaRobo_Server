@@ -12,7 +12,7 @@ import keepalive.KeepAliveManager;
 import publicity.Publicity;
 import show.ShowStateManager;
 import udpSocket.UdpSocket;
-import window.WindowMain;
+import window.main.WindowMain;
 import console.ConsoleSocket;
 
 public class ChibaRoboServer {
@@ -39,7 +39,7 @@ public class ChibaRoboServer {
 		try{
 			new WindowMain(ex, udp, database, kam, ssm, database_udp, database_tcp, console, publicity);
 		} catch (java.awt.HeadlessException e){
-			System.out.println("no window mode");
+			System.out.println("no window.main mode");
 		}
 		
 		System.out.println("Server System is OK");
