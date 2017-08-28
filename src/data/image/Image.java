@@ -12,7 +12,7 @@ import java.net.Socket;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-import window.main.LogMessageAdapter;
+import window.logger.LogMessageAdapter;
 
 public class Image {
 	public static final String CRLF = "\r\n";

@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import window.main.LogMessageAdapter;
+import window.logger.LogMessageAdapter;
 
 public class ImageList {
 	public static final String CRLF = "\r\n";
