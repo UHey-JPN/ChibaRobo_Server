@@ -197,6 +197,17 @@ public class ConsoleSocket implements Runnable{
 							out.println("err:1:there is no such a value:" + cmd[1]);
 						}
 						
+					}else if( cmd[0].equals("image") ){
+						// syntax of image ------------------------------
+						if( cmd[1].equals("add") ){
+							img_list.receive_img(cmd[2], out);
+							System.out.println("uploading image finished(name = " + cmd[2] + ").");
+						}else if( cmd[1].equals("list") ){
+							img_list.update_list();
+							out.println(img_list.get_md5_list());
+							System.out.println("return the hash list.");
+						}
+						
 					}else if( cmd[0].equals("exit") ){
 						// syntax of exit ------------------------------
 						out.println("finish to operation.Logout.");
