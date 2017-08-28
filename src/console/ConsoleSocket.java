@@ -10,6 +10,7 @@ import java.util.concurrent.Executor;
 
 import data.exception.AllGameIsEndedException;
 import data.exception.DataBrokenException;
+import data.image.ImageList;
 import data.main.Database;
 import keepalive.KeepAliveManager;
 import show.ShowStateManager;
@@ -19,11 +20,18 @@ public class ConsoleSocket implements Runnable{
 	private Database database = null;
 	private ShowStateManager ssm = null;
 	private KeepAliveManager kam = null;
+	private ImageList img_list = null;
 	private static String PASSWORD = "chiba.robot.studio";
 	private BufferedReader in = null;
 	private PrintWriter out = null;
 
-	public ConsoleSocket(Executor ex, Database database, ShowStateManager ssm, KeepAliveManager kam) {
+	public ConsoleSocket(
+			Executor ex,
+			Database database,
+			ShowStateManager ssm,
+			KeepAliveManager kam,
+			ImageList img_list
+	) {
 		try {
 			listen = new ServerSocket(0, 2);
 			// listen = new ServerSocket(55123, 2);
@@ -34,6 +42,7 @@ public class ConsoleSocket implements Runnable{
 		this.database = database;
 		this.ssm = ssm;
 		this.kam = kam;
+		this.img_list = img_list;
 		
 		// スレッドの起動
 		ex.execute(this);
