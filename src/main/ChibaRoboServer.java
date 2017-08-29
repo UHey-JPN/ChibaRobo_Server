@@ -37,7 +37,7 @@ public class ChibaRoboServer {
 		KeepAliveManager kam = new KeepAliveManager(ex);
 		ShowStateManager ssm = new ShowStateManager(ex, kam, database, udp);
 		DatabaseUdp database_udp = new DatabaseUdp(udp, database, ssm);
-		DatabaseTCP database_tcp = new DatabaseTCP(ex, database);
+		DatabaseTCP database_tcp = new DatabaseTCP(ex, database, img_list);
 		ConsoleSocket console = new ConsoleSocket(ex, database, ssm, kam, img_list);
 		Publicity publicity = new Publicity(ex, udp, console.get_local_port(), database_tcp.get_local_port(), kam.get_local_port());
 		
