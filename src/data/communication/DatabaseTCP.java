@@ -17,6 +17,7 @@ public class DatabaseTCP implements Runnable {
 	public DatabaseTCP(Executor ex, Database database, ImageList img_list) {
 		this.ex = ex;
 		this.database = database;
+		this.img_list = img_list;
 		
 		try {
 			listen = new ServerSocket(0, 2);
@@ -39,7 +40,7 @@ public class DatabaseTCP implements Runnable {
 		while(true){
 			try {
 				Socket soc = listen.accept();
-				ex.execute( new ThreadDatabase(soc, database,img_list) );
+				ex.execute( new ThreadDatabase(soc, database, img_list) );
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
