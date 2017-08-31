@@ -11,18 +11,19 @@ import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import window.logger.LogMessageAdapter;
 
 public class ImageList {
 	public static final String CRLF = "\r\n";
 
-	private List<Image> img_list;
+	private List<Image> image_list;
 	private File folder;
 	private LogMessageAdapter log_mes;
 
 	public ImageList(String img_folder, LogMessageAdapter log_mes) {
-		img_list = Collections.synchronizedList(new ArrayList<Image>());
+		image_list = Collections.synchronizedList(new ArrayList<Image>());
 		this.folder = new File(img_folder);
 		this.log_mes = log_mes;
 		
@@ -85,7 +86,7 @@ public class ImageList {
 			if(result){
 				out.println("err:error has occurred during upload");
 			}else{
-				img_list.add(img);
+				image_list.add(img);
 				out.println("OK");
 			}
 
@@ -116,7 +117,7 @@ public class ImageList {
 	 * @throws FileNotFoundException ファイルが存在しない、または、インスタンスが生成されていないとき。
 	 */
 	public Image get(String name) throws FileNotFoundException{
-		for(Image img : img_list){
+		for(Image img : image_list){
 			if( img.get_name().equals(name) ){
 				return img;
 			}
@@ -129,11 +130,14 @@ public class ImageList {
 	 * たぶん、事あるごとに呼び出したほうが良い
 	 */
 	public void update_list(){
-		img_list.clear();
+		image_list.clear();
 		File[] list = this.folder.listFiles();
+		Pattern pattern = Pattern.compile(".+\\..+"); // 隠しファイル以外を抽出
 		for(File f : list){
 			try {
-				img_list.add(new Image(f, log_mes));
+				if( pattern.matcher(f.getName()).find() ){
+					image_list.add(new Image(f, log_mes));
+				}
 			} catch (IOException e) {
 				log_mes.log_print(e);
 			}
@@ -147,7 +151,7 @@ public class ImageList {
 	 */
 	public String get_md5_list(){
 		String ret = "";
-		for(Image img : img_list){
+		for(Image img : image_list){
 			try {
 				ret += img.get_name() + "," + img.get_md5_str() + CRLF;
 			} catch (FileNotFoundException e) {
