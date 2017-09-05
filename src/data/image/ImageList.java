@@ -13,6 +13,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import data.robot.RoboList;
 import window.logger.LogMessageAdapter;
 
 public class ImageList {
@@ -144,6 +145,28 @@ public class ImageList {
 		}
 	}
 
+	/**
+	 * 取得したrobo_list内にあるファイル名から画像リストを作成
+	 * 
+	 */
+	public void update_list(RoboList robo_list){
+		image_list.clear();
+		
+		for(String s : robo_list.get_img_list()){
+			File f = new File(folder.getName() + "/" + s);
+			if( f.exists() ){
+				try {
+					image_list.add(new Image(f, log_mes));
+				} catch (IOException e) {
+					log_mes.log_print(e);
+				}
+			}else{
+				log_mes.log_println("Image File \"" + s + "\" is not exist.");
+			}
+		}
+	}
+	
+	
 	/**
 	 * 管理下のファイルの名前とハッシュ値（MD5）をリストとして返す。
 	 * 
