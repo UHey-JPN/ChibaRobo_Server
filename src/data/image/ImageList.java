@@ -78,6 +78,7 @@ public class ImageList {
 			// ソケットを通知して、接続待ち
 			String addr = InetAddress.getLocalHost().getHostAddress();
 			out.println("OK:" + addr + "," + listen.getLocalPort() );
+			log_mes.log_println("wait connection @addr:"+listen.getLocalPort());
 			soc = listen.accept();
 			
 			// データの受信
@@ -92,7 +93,7 @@ public class ImageList {
 			}
 
 		} catch (SocketTimeoutException e) {
-			log_mes.log_println("time out(wait connection from client to upload image)");
+			log_mes.log_println("time out(while waiting connection for uploading image from client)");
 			img.delete();
 			
 		} catch (IOException e) {
