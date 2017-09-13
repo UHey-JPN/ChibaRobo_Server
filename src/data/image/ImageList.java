@@ -78,7 +78,7 @@ public class ImageList {
 			// ソケットを通知して、接続待ち
 			String addr = InetAddress.getLocalHost().getHostAddress();
 			out.println("OK:" + addr + "," + listen.getLocalPort() );
-			log_mes.log_println("wait connection @addr:"+listen.getLocalPort());
+			log_mes.log_println("wait connection @" + addr + ":" + listen.getLocalPort());
 			soc = listen.accept();
 			
 			// データの受信
