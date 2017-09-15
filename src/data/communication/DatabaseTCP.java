@@ -5,16 +5,19 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.Executor;
 
+import data.image.ImageList;
 import data.main.Database;
 
 public class DatabaseTCP implements Runnable {
 	private Executor ex;
 	private Database database;
+	private ImageList img_list;
 	private ServerSocket listen;
 	
-	public DatabaseTCP(Executor ex, Database database) {
+	public DatabaseTCP(Executor ex, Database database, ImageList img_list) {
 		this.ex = ex;
 		this.database = database;
+		this.img_list = img_list;
 		
 		try {
 			listen = new ServerSocket(0, 2);
@@ -37,7 +40,7 @@ public class DatabaseTCP implements Runnable {
 		while(true){
 			try {
 				Socket soc = listen.accept();
-				ex.execute( new ThreadDatabase(soc, database) );
+				ex.execute( new ThreadDatabase(soc, database, img_list) );
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
