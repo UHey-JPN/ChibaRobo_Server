@@ -1,8 +1,10 @@
 package console;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -16,6 +18,7 @@ import keepalive.KeepAliveManager;
 import show.ShowStateManager;
 
 public class ConsoleSocket implements Runnable{
+	public static final String CRLF = "\r\n";
 	private ServerSocket listen = null;
 	private Database database = null;
 	private ShowStateManager ssm = null;
@@ -67,8 +70,9 @@ public class ConsoleSocket implements Runnable{
 				System.out.println("connect from " + addr_remote);
 				
 				// 入出力ストリームの生成
-				in  = new BufferedReader(new InputStreamReader(soc.getInputStream()) );
-				out = new PrintWriter(soc.getOutputStream(), true);
+				in  = new BufferedReader(new InputStreamReader(soc.getInputStream(), "UTF-8"));
+				OutputStreamWriter o_stream = new OutputStreamWriter(soc.getOutputStream(), "UTF-8");
+				out = new PrintWriter(new BufferedWriter(o_stream), true);
 				
 				// -----------------------------------------------------------
 				// 認証 -------------------------------------------------------
@@ -81,7 +85,7 @@ public class ConsoleSocket implements Runnable{
 				i_key[1] = (int)( Math.random() * 256 );
 				System.out.println("key = " + i_key[0] + "," + i_key[1]);
 				// 鍵を送信
-				out.println( "" + i_key[0] + "," + i_key[1]);
+				out.printf( "" + i_key[0] + "," + i_key[1] + CRLF);
 				
 				// パスワード暗号文の生成と確認
 				String recv_pass = in.readLine();
@@ -93,11 +97,11 @@ public class ConsoleSocket implements Runnable{
 					//if( Arrays.equals(recv_pass.toCharArray(), true_pass) ){
 					if( recv_pass.equals(PASSWORD) ){
 						System.out.println("login successed.");
-						out.println("Login : ACK");
+						out.printf("Login : ACK" + CRLF);
 						login = true;
 					}else{
 						System.out.println("login failed.");
-						out.println("Login : NAK");
+						out.printf("Login : NAK" + CRLF);
 						login = false;
 					}
 				}else{
@@ -116,11 +120,11 @@ public class ConsoleSocket implements Runnable{
 						// syntax of setter ------------------------------
 						if( cmd[1].equals("team_num") ){
 							database.reset_tournament(Integer.parseInt(cmd[2]));
-							out.println("set the number of team : " + database.get_num_of_team() + ".");
+							out.printf("set the number of team : " + database.get_num_of_team() + "." + CRLF);
 							
 						}else if( cmd[1].equals("mode") ){
 							ssm.set_show( cmd[2] );
-							out.println("set show mode : " + ssm.get_mode());
+							out.printf("set show mode : " + ssm.get_mode() + CRLF);
 							
 						}else if( cmd[1].equals("score") ){
 							if( cmd[2].equals("-clear") ){
@@ -132,56 +136,56 @@ public class ConsoleSocket implements Runnable{
 							}else{
 								ssm.set_all_score(Integer.parseInt(cmd[2]), Integer.parseInt(cmd[3]));
 							}
-							out.println("set score : " + ssm.get_score()[0] + " - " + ssm.get_score()[1]);
+							out.printf("set score : " + ssm.get_score()[0] + " - " + ssm.get_score()[1] + CRLF);
 							
 						}else if( cmd[1].equals("winner") ){
 							if( cmd[2].equals("side0") ){
 								try {
 									database.set_winner(0);
 									ssm.update_teams_robots();
-									out.println("set winner : side0");
+									out.printf("set winner : side0" + CRLF);
 								} catch (DataBrokenException e) {
-									out.println("err:database broken");
+									out.printf("err:database broken" + CRLF);
 									e.printStackTrace();
 								} catch (AllGameIsEndedException e) {
-									out.println("All game was finished.");
+									out.printf("All game was finished." + CRLF);
 									e.printStackTrace();
 								}
 							}else if( cmd[2].equals("side1") ){
 								try {
 									database.set_winner(1);
 									ssm.update_teams_robots();
-									out.println("set winner : side1");
+									out.printf("set winner : side1" + CRLF);
 								} catch (DataBrokenException e) {
-									out.println("err:database broken");
+									out.printf("err:database broken" + CRLF);
 									e.printStackTrace();
 								} catch (AllGameIsEndedException e) {
-									out.println("All game was finished.");
+									out.printf("All game was finished." + CRLF);
 									e.printStackTrace();
 								}
 							}else{
-								out.println("err:2:winner is err:" + cmd[2]);
+								out.printf("err:2:winner is err:" + cmd[2] + CRLF);
 							}
 							
 						}else if(cmd[1].equals("team_list")){
 							try{
 								database.set_team_number_list(cmd[2]);
-								out.println("set team_list " + cmd[2]);
+								out.printf("set team_list " + cmd[2] + CRLF);
 							} catch (IllegalArgumentException e){
-								out.println("err:2:does not match the number of team.");
+								out.printf("err:2:does not match the number of team." + CRLF);
 							}
 						}else{
-							out.println("err:1:there is no such a value:" + cmd[1]);
+							out.printf("err:1:there is no such a value:" + cmd[1] + CRLF);
 						}
 						
 					}else if( cmd[0].equals("get") ){
 						// syntax of getter ------------------------------
 						if( cmd[1].equals("team_num") ){
-							out.println("" + database.get_num_of_team());
+							out.printf("" + database.get_num_of_team() + CRLF);
 						}else if( cmd[1].equals("host_list") ){
-							out.println("" + kam.get_all_state());
+							out.printf("" + kam.get_all_state() + CRLF);
 						}else{
-							out.println("err:1:there is no such a value:" + cmd[1]);
+							out.printf("err:1:there is no such a value:" + cmd[1] + CRLF);
 						}
 						
 					}else if( cmd[0].equals("add") ){
@@ -191,19 +195,19 @@ public class ConsoleSocket implements Runnable{
 						}else if( cmd[1].equals("team") ){
 							add_team();
 						}else{
-							out.println("err:1:there is no such a value:" + cmd[1]);
+							out.printf("err:1:there is no such a value:" + cmd[1] + CRLF);
 						}
 						
 					}else if( cmd[0].equals("clear") ){
 						// syntax of add ------------------------------
 						if( cmd[1].equals("robot") ){
 							database.clear_robolist();
-							out.println("All robot data is cleared.");
+							out.printf("All robot data is cleared." + CRLF);
 						}else if( cmd[1].equals("team") ){
 							database.clear_teamlist();
-							out.println("All team data is cleared.");
+							out.printf("All team data is cleared." + CRLF);
 						}else{
-							out.println("err:1:there is no such a value:" + cmd[1]);
+							out.printf("err:1:there is no such a value:" + cmd[1] + CRLF);
 						}
 						
 					}else if( cmd[0].equals("image") ){
@@ -213,18 +217,18 @@ public class ConsoleSocket implements Runnable{
 							System.out.println("uploading process is finished(name = " + cmd[2] + ").");
 						}else if( cmd[1].equals("list") ){
 							img_list.update_list();
-							out.println(img_list.get_md5_list());
+							out.printf(img_list.get_md5_list() + CRLF);
 							System.out.println("return the hash list.");
 						}
 						
 					}else if( cmd[0].equals("exit") ){
 						// syntax of exit ------------------------------
-						out.println("finish to operation.Logout.");
+						out.printf("finish to operation.Logout." + CRLF);
 						System.out.println("Logout.");
 						break;
 						
 					}else{
-						out.println("err:0:there is no such a command:" + cmd[0]);
+						out.printf("err:0:there is no such a command:" + cmd[0] + CRLF);
 					}
 				}
 				
@@ -265,7 +269,7 @@ public class ConsoleSocket implements Runnable{
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		out.println(num + " team(s) is registered."); 
+		out.printf(num + " team(s) is registered." + CRLF);
 	}
 
 	private void add_robot() {
@@ -292,7 +296,7 @@ public class ConsoleSocket implements Runnable{
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		out.println(num + " robot(s) is registered."); 
+		out.printf(num + " robot(s) is registered." + CRLF);
 	}
 
 }
