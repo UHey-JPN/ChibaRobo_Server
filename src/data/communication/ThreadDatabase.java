@@ -1,9 +1,11 @@
 package data.communication;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.Socket;
 
@@ -32,8 +34,9 @@ class ThreadDatabase implements Runnable {
         String[] cmd;
         
 		try {
-			in = new BufferedReader(new InputStreamReader(soc.getInputStream()));
-			out = new PrintWriter(soc.getOutputStream(), true);
+			in = new BufferedReader(new InputStreamReader(soc.getInputStream(), "UTF-8"));
+			OutputStreamWriter o_stream = new OutputStreamWriter(soc.getOutputStream(), "UTF-8");
+			out = new PrintWriter(new BufferedWriter(o_stream), true);
 
 			line = in.readLine();
 
@@ -42,71 +45,41 @@ class ThreadDatabase implements Runnable {
 
 			if( cmd[0].equals("robot") ){
 				// get robot list ----------------------
-				out.println("ACK");
-				if(cmd.length == 2){
-					if( cmd[1].equals("utf-8") ){
-						out.println(database.get_xml_robolist("utf-8"));
-						System.out.println("Requested robot data(utf-8)");
-					}else if( cmd[1].equals("Shift_JIS") ){
-						String utf_str = database.get_xml_robolist("Shift_JIS");
-						String s_jis = new String(utf_str.getBytes("Shift_JIS"), "Shift_JIS");
-						out.println(s_jis);					
-						System.out.println("Requested robot data(shift-jis)");
-					}else{
-						out.println(database.get_xml_robolist());
-						System.out.println("Requested robot data(utf-8)");
-					}
+				out.printf("ACK" + CRLF);
+				if(cmd.length == 2 || cmd.length == 1){
+					out.printf(database.get_xml_robolist("utf-8") + CRLF);
+					System.out.println("Requested robot data(utf-8)");
 				}else{
-					out.println(database.get_xml_robolist());
+					out.printf(database.get_xml_robolist() + CRLF);
 					System.out.println("Requested robot data(utf-8)");
 				}
 				
 			}else if( cmd[0].equals("team") ){
 				// get team list ----------------------
-				out.println("ACK");
-				if(cmd.length == 2){
-					if( cmd[1].equals("utf-8") ){
-						out.println(database.get_xml_teamlist("utf-8"));
-						System.out.println("Requested team data(utf-8)");
-					}else if( cmd[1].equals("Shift_JIS") ){
-						String utf_str = database.get_xml_teamlist("Shift_JIS");
-						String s_jis = new String(utf_str.getBytes("Shift_JIS"), "Shift_JIS");
-						out.println(s_jis);					
-						System.out.println("Requested team data(shift-jis)");
-					}else{
-						out.println(database.get_xml_teamlist());
-						System.out.println("Requested team data(utf-8)");
-					}
+				out.printf("ACK" + CRLF);
+				if(cmd.length == 2 || cmd.length == 1){
+					out.printf(database.get_xml_teamlist("utf-8") + CRLF);
+					System.out.println("Requested team data(utf-8)");
 				}else{
-					out.println(database.get_xml_teamlist());
+					out.printf(database.get_xml_teamlist() + CRLF);
 					System.out.println("Requested team data(utf-8)");
 				}
 				
 			}else if( cmd[0].equals("tournament") ){
 				// get tournament ----------------------
-				out.println("ACK");
-				if(cmd.length == 2){
-					if( cmd[1].equals("utf-8") ){
-						out.println(database.get_xml_tournament("utf-8"));
-						System.out.println("Requested tournament data(utf-8)");
-					}else if( cmd[1].equals("Shift_JIS") ){
-						String utf_str = database.get_xml_tournament("Shift_JIS");
-						String s_jis = new String(utf_str.getBytes("Shift_JIS"), "Shift_JIS");
-						out.println(s_jis);					
-						System.out.println("Requested tournament data(shift-jis)");
-					}else{
-						out.println(database.get_xml_tournament());
-						System.out.println("Requested tournament data(utf-8)");
-					}
+				out.printf("ACK" + CRLF);
+				if(cmd.length == 2 || cmd.length == 1){
+					out.printf(database.get_xml_tournament("utf-8") + CRLF);
+					System.out.println("Requested tournament data(utf-8)");
 				}else{
-					out.println(database.get_xml_tournament());
+					out.printf(database.get_xml_tournament() + CRLF);
 					System.out.println("Requested tournament data(utf-8)");
 				}
 				
 			}else if( cmd[0].equals("image") ){
 				// get image ----------------------
 				if(cmd.length != 2){
-					out.println("NAK:ileagal command.".getBytes());
+					out.printf("NAK:ileagal command.".getBytes() + CRLF);
 				}else{
 					try {
 						Image img = img_list.get(cmd[1]);
@@ -115,13 +88,13 @@ class ThreadDatabase implements Runnable {
 						img.upload_data(soc.getOutputStream());
 						
 					} catch (FileNotFoundException e){
-						out.println("NAK:cannot find such a file(" + cmd[1] + ").");
+						out.printf("NAK:cannot find such a file(" + cmd[1] + ")." + CRLF);
 					}
 				}
 				
 			}else{
 				// cancel the operation
-				out.println("NAK");
+				out.printf("NAK" + CRLF);
 				System.out.println("Requested data is failed");
 			}
 
