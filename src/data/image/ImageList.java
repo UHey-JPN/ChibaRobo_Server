@@ -30,7 +30,7 @@ public class ImageList {
 		
 		// フォルダーが存在しない場合、フォルダを生成
 		if( !folder.exists() ){
-			folder.mkdir();
+			folder.mkdirs();
 		}
 		
 		// 画像用に指示された場所がフォルダーかどうかを確認する
