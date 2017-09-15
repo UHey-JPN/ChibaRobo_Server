@@ -7,11 +7,13 @@ import java.util.concurrent.Executors;
 
 import data.communication.DatabaseTCP;
 import data.communication.DatabaseUdp;
+import data.image.ImageList;
 import data.main.Database;
 import keepalive.KeepAliveManager;
 import publicity.Publicity;
 import show.ShowStateManager;
 import udpSocket.UdpSocket;
+import window.logger.LogToSystemIO;
 import window.main.WindowMain;
 import console.ConsoleSocket;
 
@@ -28,12 +30,15 @@ public class ChibaRoboServer {
 		
 		UdpSocket udp = new UdpSocket();
 
+		LogToSystemIO log = new LogToSystemIO();
+		
+		ImageList img_list = new ImageList("DB/img/", log);
 		Database database = new Database(24);
 		KeepAliveManager kam = new KeepAliveManager(ex);
 		ShowStateManager ssm = new ShowStateManager(ex, kam, database, udp);
 		DatabaseUdp database_udp = new DatabaseUdp(udp, database, ssm);
-		DatabaseTCP database_tcp = new DatabaseTCP(ex, database);
-		ConsoleSocket console = new ConsoleSocket(ex, database, ssm, kam);
+		DatabaseTCP database_tcp = new DatabaseTCP(ex, database, img_list);
+		ConsoleSocket console = new ConsoleSocket(ex, database, ssm, kam, img_list);
 		Publicity publicity = new Publicity(ex, udp, console.get_local_port(), database_tcp.get_local_port(), kam.get_local_port());
 		
 		try{
