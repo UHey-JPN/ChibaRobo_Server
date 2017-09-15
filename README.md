@@ -34,16 +34,20 @@
 	* サーバにあるKeepAliveManagerが名前を管理できるようになっているので、各クライアントは識別できるような名前をKeepAliveパケットに載せるべき。
 	* 名前は適当でも問題ないし、かぶっても大丈夫だが、ユーザーに優しくない。
 
-### TCPでサーバーから取得するデータベース  
-次の3種類。指定方法はクライアントからデータの種類と文字コードを最初に送信。文字コードはutf-8かShitf_JIS。
+### TCPでサーバーから取得するデータベース
+次の3種類。指定方法はクライアントからデータの種類と文字コードを最初に送信。文字コードはutf-8。
+**Shift_JISは廃止。**大事なことなのでもう一度。**Shift_JISは廃止。**
 1. Robot List  
-　クライアントから"robot,utf-8"または"robot,Shift_JIS"と送信。"ACK"が返ってきたあとに、Robot ListがXMLで返ってくる。
+　クライアントから"robot,utf-8"または"robot"と送信。"ACK"が返ってきたあとに、Robot ListがXMLで返ってくる。
 
 2. Team List  
-　クライアントから"team,utf-8"または"team,Shift_JIS"と送信。"ACK"が返ってきたあとに、Team ListがXMLで返ってくる。
+　クライアントから"team,utf-8"または"team"と送信。"ACK"が返ってきたあとに、Team ListがXMLで返ってくる。
 
 3. Tournament Data  
-　クライアントから"tournament,utf-8"または"tournament,Shift_JIS"と送信。"ACK"が返ってきたあとに、Tournament DataがXMLで返ってくる。
+　クライアントから"tournament,utf-8"または"tournament"と送信。"ACK"が返ってきたあとに、Tournament DataがXMLで返ってくる。
+
+4. Image Data  
+　クライアントから"image"と送信。"ACK:<データバイト数><CR><LF>"が返ってきたあとに、画像のバイナリデータが返ってくる。
 
 
 ----
