@@ -40,14 +40,14 @@ public class UdpSocket {
 		// set broadcast address
 		InetSocketAddress broadcast = new InetSocketAddress("255.255.255.255", SOC_PORT);
 		
-		// create packet
-		byte[] b_packet = str_packet.getBytes();
-		DatagramPacket packet = new DatagramPacket(b_packet, b_packet.length, broadcast);
-
 		try {
+			// create packet
+			byte[] b_packet = str_packet.getBytes("UTF-8");
+			DatagramPacket packet = new DatagramPacket(b_packet, b_packet.length, broadcast);
+
 			soc.send(packet);
-		} catch (IOException e1) {
-			e1.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 		
 	}
