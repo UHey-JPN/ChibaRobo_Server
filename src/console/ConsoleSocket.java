@@ -152,7 +152,6 @@ public class ConsoleSocket implements Runnable{
 		// -----------------------------------------
 		// setコマンドの処理
 		new CommandProcesser() {
-			@Override public int get_cmd_index() { return 0; }
 			@Override public String get_cmd_name() { return "set"; }
 	
 			@Override
@@ -224,7 +223,6 @@ public class ConsoleSocket implements Runnable{
 		// -----------------------------------------
 		// getコマンドの処理
 		new CommandProcesser() {
-			@Override public int get_cmd_index() { return 0; }
 			@Override public String get_cmd_name() { return "get"; }
 		
 			@Override
@@ -243,7 +241,6 @@ public class ConsoleSocket implements Runnable{
 		// -----------------------------------------
 		// addコマンドの処理
 		new CommandProcesser() {
-			@Override public int get_cmd_index() { return 0; }
 			@Override public String get_cmd_name() { return "add"; }
 		
 			@Override
@@ -262,7 +259,6 @@ public class ConsoleSocket implements Runnable{
 		// -----------------------------------------
 		// clearコマンドの処理
 		new CommandProcesser() {
-			@Override public int get_cmd_index() { return 0; }
 			@Override public String get_cmd_name() { return "clear"; }
 		
 			@Override
@@ -283,7 +279,6 @@ public class ConsoleSocket implements Runnable{
 		// -----------------------------------------
 		// imageコマンドの処理
 		new CommandProcesser() {
-			@Override public int get_cmd_index() { return 0; }
 			@Override public String get_cmd_name() { return "image"; }
 		
 			@Override
@@ -303,7 +298,6 @@ public class ConsoleSocket implements Runnable{
 		// -----------------------------------------
 		// exitコマンドの処理
 		new CommandProcesser() {
-			@Override public int get_cmd_index() { return 0; }
 			@Override public String get_cmd_name() { return "exit"; }
 		
 			@Override

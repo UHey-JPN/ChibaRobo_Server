@@ -8,13 +8,6 @@ import java.io.IOException;
  */
 public interface CommandProcesser {
 	/**
-	 * 何番目のコマンドライン引数を使用するかを返す。
-	 * 
-	 * @return - int型
-	 */
-	public int get_cmd_index();
-	
-	/**
 	 * このコマンドを実行する名前を返す。
 	 * 
 	 * @return - Stringでコマンド名。
