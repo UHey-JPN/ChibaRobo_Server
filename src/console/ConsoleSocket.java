@@ -30,12 +30,7 @@ public class ConsoleSocket implements Runnable{
 	private BufferedReader in = null;
 	private PrintWriter out = null;
 	
-	Map<String, CommandProcesser> processer_map = new HashMap<String, CommandProcesser>(){
-		private static final long serialVersionUID = 1L;
-		{
-			for(CommandProcesser c : command_list) put(c.get_cmd_name(), c);
-		}
-	};
+	Map<String, CommandProcesser> processer_map;
 	
 	public ConsoleSocket(
 			Executor ex,
@@ -55,6 +50,13 @@ public class ConsoleSocket implements Runnable{
 		this.ssm = ssm;
 		this.kam = kam;
 		this.img_list = img_list;
+
+		processer_map = new HashMap<String, CommandProcesser>(){
+			private static final long serialVersionUID = 1L;
+			{
+				for(CommandProcesser c : command_list) put(c.get_cmd_name(), c);
+			}
+		};
 		
 		// スレッドの起動
 		ex.execute(this);
