@@ -8,6 +8,8 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.Executor;
 
 import data.exception.AllGameIsEndedException;
@@ -27,7 +29,14 @@ public class ConsoleSocket implements Runnable{
 	private static String PASSWORD = "chiba.robot.studio";
 	private BufferedReader in = null;
 	private PrintWriter out = null;
-
+	
+	Map<String, CommandProcesser> processer_map = new HashMap<String, CommandProcesser>(){
+		private static final long serialVersionUID = 1L;
+		{
+			for(CommandProcesser c : command_list) put(c.get_cmd_name(), c);
+		}
+	};
+	
 	public ConsoleSocket(
 			Executor ex,
 			Database database,
@@ -115,125 +124,15 @@ public class ConsoleSocket implements Runnable{
 					if( str_cmd == null ) break;
 					String[] cmd = str_cmd.split(" ");
 					
-					// 構文の解析
-					if( cmd[0].equals("set") ){
-						// syntax of setter ------------------------------
-						if( cmd[1].equals("team_num") ){
-							database.reset_tournament(Integer.parseInt(cmd[2]));
-							out.printf("set the number of team : " + database.get_num_of_team() + "." + CRLF);
-							
-						}else if( cmd[1].equals("mode") ){
-							ssm.set_show( cmd[2] );
-							out.printf("set show mode : " + ssm.get_mode() + CRLF);
-							
-						}else if( cmd[1].equals("score") ){
-							if( cmd[2].equals("-clear") ){
-								ssm.reset_score();
-							}else if( cmd[2].equals("-side0") ){
-								ssm.set_score(0, Integer.parseInt(cmd[3]));
-							}else if( cmd[2].equals("-side1") ){
-								ssm.set_score(1, Integer.parseInt(cmd[3]));
-							}else{
-								ssm.set_all_score(Integer.parseInt(cmd[2]), Integer.parseInt(cmd[3]));
-							}
-							out.printf("set score : " + ssm.get_score()[0] + " - " + ssm.get_score()[1] + CRLF);
-							
-						}else if( cmd[1].equals("winner") ){
-							if( cmd[2].equals("side0") ){
-								try {
-									database.set_winner(0);
-									ssm.update_teams_robots();
-									out.printf("set winner : side0" + CRLF);
-								} catch (DataBrokenException e) {
-									out.printf("err:database broken" + CRLF);
-									e.printStackTrace();
-								} catch (AllGameIsEndedException e) {
-									out.printf("All game was finished." + CRLF);
-									e.printStackTrace();
-								}
-							}else if( cmd[2].equals("side1") ){
-								try {
-									database.set_winner(1);
-									ssm.update_teams_robots();
-									out.printf("set winner : side1" + CRLF);
-								} catch (DataBrokenException e) {
-									out.printf("err:database broken" + CRLF);
-									e.printStackTrace();
-								} catch (AllGameIsEndedException e) {
-									out.printf("All game was finished." + CRLF);
-									e.printStackTrace();
-								}
-							}else{
-								out.printf("err:2:winner is err:" + cmd[2] + CRLF);
-							}
-							
-						}else if(cmd[1].equals("team_list")){
-							try{
-								database.set_team_number_list(cmd[2]);
-								out.printf("set team_list " + cmd[2] + CRLF);
-							} catch (IllegalArgumentException e){
-								out.printf("err:2:does not match the number of team." + CRLF);
-							}
-						}else{
-							out.printf("err:1:there is no such a value:" + cmd[1] + CRLF);
-						}
-						
-					}else if( cmd[0].equals("get") ){
-						// syntax of getter ------------------------------
-						if( cmd[1].equals("team_num") ){
-							out.printf("" + database.get_num_of_team() + CRLF);
-						}else if( cmd[1].equals("host_list") ){
-							out.printf("" + kam.get_all_state() + CRLF);
-						}else{
-							out.printf("err:1:there is no such a value:" + cmd[1] + CRLF);
-						}
-						
-					}else if( cmd[0].equals("add") ){
-						// syntax of add ------------------------------
-						if( cmd[1].equals("robot") ){
-							add_robot();
-						}else if( cmd[1].equals("team") ){
-							add_team();
-						}else{
-							out.printf("err:1:there is no such a value:" + cmd[1] + CRLF);
-						}
-						
-					}else if( cmd[0].equals("clear") ){
-						// syntax of add ------------------------------
-						if( cmd[1].equals("robot") ){
-							database.clear_robolist();
-							out.printf("All robot data is cleared." + CRLF);
-						}else if( cmd[1].equals("team") ){
-							database.clear_teamlist();
-							out.printf("All team data is cleared." + CRLF);
-						}else{
-							out.println("err:1:there is no such a value:" + cmd[1]);
-						}
-						
-					}else if( cmd[0].equals("image") ){
-						// syntax of image ------------------------------
-						if( cmd[1].equals("add") ){
-							img_list.receive_img(cmd[2], out);
-							System.out.println("uploading process is finished(name = " + cmd[2] + ").");
-						}else if( cmd[1].equals("list") ){
-							img_list.update_list();
-							out.println(img_list.get_md5_list());
-							System.out.println("return the hash list.");
-						}
-						
-					}else if( cmd[0].equals("exit") ){
-						// syntax of exit ------------------------------
-						out.printf("finish to operation.Logout." + CRLF);
-						System.out.println("Logout.");
-						break;
-						
+					// 一つ目のコマンドに対応するものを呼び出し
+					CommandProcesser p;
+					if( (p=processer_map.get(cmd[0])) != null ){
+						login = p.command_process(cmd);
 					}else{
 						out.printf("err:0:there is no such a command:" + cmd[0] + CRLF);
 					}
 				}
 				
-			} catch (IOException e) {
-				e.printStackTrace();
 			} catch (Exception e) {
 				e.printStackTrace();
 			} finally {
@@ -246,7 +145,173 @@ public class ConsoleSocket implements Runnable{
 			}
 		}
 	}
+	
+	///////////////////////////////////////////////////////////
+	//  コマンド処理の内部
+	///////////////////////////////////////////////////////////
+	CommandProcesser command_list[] = {
+		// -----------------------------------------
+		// setコマンドの処理
+		new CommandProcesser() {
+			@Override public String get_cmd_name() { return "set"; }
+	
+			@Override
+			public boolean command_process(String[] cmd) throws Exception {
+				if( cmd[1].equals("team_num") ){
+					database.reset_tournament(Integer.parseInt(cmd[2]));
+					out.printf("set the number of team : " + database.get_num_of_team() + "." + CRLF);
+					
+				}else if( cmd[1].equals("mode") ){
+					ssm.set_show( cmd[2] );
+					out.printf("set show mode : " + ssm.get_mode() + CRLF);
+					
+				}else if( cmd[1].equals("score") ){
+					if( cmd[2].equals("-clear") ){
+						ssm.reset_score();
+					}else if( cmd[2].equals("-side0") ){
+						ssm.set_score(0, Integer.parseInt(cmd[3]));
+					}else if( cmd[2].equals("-side1") ){
+						ssm.set_score(1, Integer.parseInt(cmd[3]));
+					}else{
+						ssm.set_all_score(Integer.parseInt(cmd[2]), Integer.parseInt(cmd[3]));
+					}
+					out.printf("set score : " + ssm.get_score()[0] + " - " + ssm.get_score()[1] + CRLF);
+					
+				}else if( cmd[1].equals("winner") ){
+					if( cmd[2].equals("side0") ){
+						try {
+							database.set_winner(0);
+							ssm.update_teams_robots();
+							out.printf("set winner : side0" + CRLF);
+						} catch (DataBrokenException e) {
+							out.printf("err:database broken" + CRLF);
+							e.printStackTrace();
+						} catch (AllGameIsEndedException e) {
+							out.printf("All game was finished." + CRLF);
+							e.printStackTrace();
+						}
+					}else if( cmd[2].equals("side1") ){
+						try {
+							database.set_winner(1);
+							ssm.update_teams_robots();
+							out.printf("set winner : side1" + CRLF);
+						} catch (DataBrokenException e) {
+							out.printf("err:database broken" + CRLF);
+							e.printStackTrace();
+						} catch (AllGameIsEndedException e) {
+							out.printf("All game was finished." + CRLF);
+							e.printStackTrace();
+						}
+					}else{
+						out.printf("err:2:winner is err:" + cmd[2] + CRLF);
+					}
+					
+				}else if(cmd[1].equals("team_list")){
+					try{
+						database.set_team_number_list(cmd[2]);
+						out.printf("set team_list " + cmd[2] + CRLF);
+					} catch (IllegalArgumentException e){
+						out.printf("err:2:does not match the number of team." + CRLF);
+					}
+				}else{
+					out.printf("err:1:there is no such a value:" + cmd[1] + CRLF);
+				}
+				return true;
+			}
+		}, // setコマンドの処理 終わり
+	
+		
+		// -----------------------------------------
+		// getコマンドの処理
+		new CommandProcesser() {
+			@Override public String get_cmd_name() { return "get"; }
+		
+			@Override
+			public boolean command_process(String[] cmd) throws Exception {
+				if( cmd[1].equals("team_num") ){
+					out.printf("" + database.get_num_of_team() + CRLF);
+				}else if( cmd[1].equals("host_list") ){
+					out.printf("" + kam.get_all_state() + CRLF);
+				}else{
+					out.printf("err:1:there is no such a value:" + cmd[1] + CRLF);
+				}
+				return true;
+			}
+		},
+	
+		// -----------------------------------------
+		// addコマンドの処理
+		new CommandProcesser() {
+			@Override public String get_cmd_name() { return "add"; }
+		
+			@Override
+			public boolean command_process(String[] cmd) throws Exception {
+				if( cmd[1].equals("robot") ){
+					add_robot();
+				}else if( cmd[1].equals("team") ){
+					add_team();
+				}else{
+					out.printf("err:1:there is no such a value:" + cmd[1] + CRLF);
+				}
+				return true;
+			}
+		},
+	
+		// -----------------------------------------
+		// clearコマンドの処理
+		new CommandProcesser() {
+			@Override public String get_cmd_name() { return "clear"; }
+		
+			@Override
+			public boolean command_process(String[] cmd) throws Exception {
+				if( cmd[1].equals("robot") ){
+					database.clear_robolist();
+					out.printf("All robot data is cleared." + CRLF);
+				}else if( cmd[1].equals("team") ){
+					database.clear_teamlist();
+					out.printf("All team data is cleared." + CRLF);
+				}else{
+					out.println("err:1:there is no such a value:" + cmd[1]);
+				}
+				return true;
+			}
+		},
+	
+		// -----------------------------------------
+		// imageコマンドの処理
+		new CommandProcesser() {
+			@Override public String get_cmd_name() { return "image"; }
+		
+			@Override
+			public boolean command_process(String[] cmd) throws Exception {
+				if( cmd[1].equals("add") ){
+					img_list.receive_img(cmd[2], out);
+					System.out.println("uploading process is finished(name = " + cmd[2] + ").");
+				}else if( cmd[1].equals("list") ){
+					img_list.update_list();
+					out.println(img_list.get_md5_list());
+					System.out.println("return the hash list.");
+				}
+				return true;
+			}
+		},
+	
+		// -----------------------------------------
+		// exitコマンドの処理
+		new CommandProcesser() {
+			@Override public String get_cmd_name() { return "exit"; }
+		
+			@Override
+			public boolean command_process(String[] cmd) throws Exception {
+				// syntax of exit ------------------------------
+				out.printf("finish to operation.Logout." + CRLF);
+				System.out.println("Logout.");
+				return false;
+			}
+		}
+	};
 
+	
 	private void add_team() {
 		int num = 0;
 		try {
