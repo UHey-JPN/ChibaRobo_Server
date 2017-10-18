@@ -125,9 +125,10 @@ public class ConsoleSocket implements Runnable{
 					String[] cmd = str_cmd.split(" ");
 					
 					// 一つ目のコマンドに対応するものを呼び出し
-					try {
-						login = processer_map.get(cmd[0]).command_process(cmd);
-					} catch(NullPointerException e) {
+					CommandProcesser p;
+					if( (p=processer_map.get(cmd[0])) != null ){
+						login = p.command_process(cmd);
+					}else{
 						out.printf("err:0:there is no such a command:" + cmd[0] + CRLF);
 					}
 				}
