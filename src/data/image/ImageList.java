@@ -8,6 +8,7 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -22,6 +23,8 @@ public class ImageList {
 	private List<Image> image_list;
 	private File folder;
 	private LogMessageAdapter log_mes;
+	
+	private String addr;
 
 	public ImageList(String img_folder, LogMessageAdapter log_mes) {
 		image_list = Collections.synchronizedList(new ArrayList<Image>());
@@ -39,6 +42,12 @@ public class ImageList {
 			System.exit(1);
 		}
 		
+		try {
+			addr = InetAddress.getLocalHost().getHostAddress();
+		} catch (UnknownHostException e) {
+			e.printStackTrace();
+		}
+
 		this.update_list();
 	}
 	
@@ -76,7 +85,6 @@ public class ImageList {
 			listen.setSoTimeout(1000); // 1秒以内に接続が来なければタイムアウト
 			
 			// ソケットを通知して、接続待ち
-			String addr = InetAddress.getLocalHost().getHostAddress();
 			out.println("OK:" + addr + "," + listen.getLocalPort() );
 			log_mes.log_println("wait connection @" + addr + ":" + listen.getLocalPort());
 			soc = listen.accept();
