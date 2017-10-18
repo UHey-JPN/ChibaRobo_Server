@@ -289,6 +289,7 @@ public class ConsoleSocket implements Runnable{
 				if( cmd[1].equals("add") ){
 					img_list.receive_img(cmd[2], out);
 					System.out.println("uploading process is finished(name = " + cmd[2] + ").");
+					System.out.println("");
 				}else if( cmd[1].equals("list") ){
 					img_list.update_list();
 					out.println(img_list.get_md5_list());
