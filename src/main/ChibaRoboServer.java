@@ -1,10 +1,13 @@
 package main;
 
+import java.io.IOException;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -27,41 +30,93 @@ public class ChibaRoboServer {
 		Executor ex = Executors.newCachedThreadPool();
 
 		System.out.println("Starting ChibaRobo Server...");
+		System.out.println("Applying config...");
+
+		try {
+			SettingManager.ReadConfiguration(ChibaRoboServer.class);
+		} catch (IOException e1) {
+			System.out.println(
+					"An IOException was thrown while trying to open/read from configuration file. (does the file exist or someone else is using it?)");
+			e1.printStackTrace();
+		}
 
 		InetAddress addr = null;
+		InetAddress nic_addr = null;
+		byte[] nic_mac = null;
+		String nic_addr_str = SettingManager.getProperties().getProperty("IP_ADDR");
+		String nic_mac_str = SettingManager.getProperties().getProperty("NIC_MAC");
+
+		if (nic_addr_str != null) {
+			try {
+				nic_addr = InetAddress.getByName(nic_addr_str);
+			} catch (UnknownHostException e) {
+				// e.printStackTrace();
+				nic_addr = null;
+			}
+		}
+
+		if (nic_mac_str != null) {
+			try {
+				long nic_mac_long = Long.parseLong(nic_mac_str.replaceAll(":", ""), 16);
+				ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES);
+				buffer.putLong(nic_mac_long);
+				nic_mac = Arrays.copyOfRange(buffer.array(), 2, 8);
+			} catch (Exception e) {
+				// e.printStackTrace();
+				nic_mac = null;
+			}
+		}
+
 		try {
-			addr = InetAddress.getLocalHost();
-		} catch (UnknownHostException e) {
-			System.out.println("An UnknownHostException was thrown while trying to get local IP addresses.");
+			// enumerate all NIC
+			Enumeration<NetworkInterface> n = NetworkInterface.getNetworkInterfaces();
+			while ((addr == null || addr.isLoopbackAddress()) && n.hasMoreElements()) {
+				NetworkInterface e = n.nextElement();
+
+				byte[] mac = e.getHardwareAddress();
+				boolean mac_matches = false;
+				if (mac != null && Arrays.equals(mac, nic_mac)) {
+					mac_matches = true;
+				}
+
+				// System.out.println("Using NIC: " + e.getName() + " : " + e.getDisplayName());
+
+				Enumeration<InetAddress> a = e.getInetAddresses();
+				while (a.hasMoreElements()) {
+					InetAddress _addr = a.nextElement();
+					
+					if(_addr.equals(nic_addr))
+					{
+						System.out.println("Found NIC matching IP address: " + e.getName() + " : " + e.getDisplayName());
+						addr = _addr;
+						break;
+					}
+					
+					if(addr == null && mac_matches && _addr instanceof Inet4Address)
+					{
+						System.out.println("Found NIC matching MAC address: " + e.getName() + " : " + e.getDisplayName());
+						addr = _addr;
+						break;
+					}
+				}
+			}
+		} catch (Exception e) {
+			System.out.println("An error occurred while trying to get local IP addresses.");
 			e.printStackTrace();
 		}
 
-		// enumerate all NIC
-		if (addr == null || addr.isLoopbackAddress()) {
+		if (addr == null) {
 			try {
-				Enumeration<NetworkInterface> n = NetworkInterface.getNetworkInterfaces();
-				while ((addr == null || addr.isLoopbackAddress()) && n.hasMoreElements()) {
-					NetworkInterface e = n.nextElement();
-					System.out.println("Network interface detected: " + e.getName());
-					Enumeration<InetAddress> a = e.getInetAddresses();
-					while (a.hasMoreElements()) {
-						InetAddress _addr = a.nextElement();
-						System.out.println("  " + _addr.getHostAddress());
-						if(!_addr.isLoopbackAddress() && (_addr instanceof Inet4Address)) {
-							addr = _addr;
-							break;
-						}
-					}
-				}
-			} catch (SocketException e) {
-				System.out.println("An error occurred while trying to get local IP addresses.");
+				addr = InetAddress.getLocalHost();
+			} catch (UnknownHostException e) {
+				System.out.println("An UnknownHostException was thrown while trying to get local IP addresses.");
 				e.printStackTrace();
 			}
 		}
 
 		System.out.println(addr.getHostName() + "/" + addr.getHostAddress());
 
-		UdpSocket udp = new UdpSocket(addr);
+		UdpSocket udp = new UdpSocket(addr, nic_mac);
 
 		LogToSystemIO log = new LogToSystemIO();
 

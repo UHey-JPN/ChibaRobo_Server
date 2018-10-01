@@ -30,9 +30,11 @@ public class UdpSocket {
 		}
 	}
 
-	public UdpSocket(InetAddress addr) {
+	public UdpSocket(InetAddress addr, byte[] nic_mac) {
+		
+		
 		try {
-			soc = new DatagramSocket();
+			soc = new DatagramSocket(58238, addr);
 			System.out.println("UDP Socket is opened(port number = " + soc.getLocalPort() + ").");
 		} catch (SocketException e) {
 			e.printStackTrace();
@@ -42,7 +44,6 @@ public class UdpSocket {
 	}
 
 	public InetAddress get_inet_address() {
-		// return soc.getLocalAddress();
 		return this.addr;
 	}
 
