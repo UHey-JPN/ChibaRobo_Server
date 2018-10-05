@@ -3,11 +3,9 @@ package udpSocket;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
-import java.net.UnknownHostException;
 
 public class UdpSocket {
 	private final static String CRLF = "\r\n";
@@ -15,27 +13,12 @@ public class UdpSocket {
 	private DatagramSocket soc;
 	private InetAddress addr;
 
-	public UdpSocket() {
-		try {
-			soc = new DatagramSocket();
-			System.out.println("UDP Socket is opened(port number = " + soc.getLocalPort() + ").");
-		} catch (SocketException e) {
-			e.printStackTrace();
-		}
-
-		try {
-			this.addr = InetAddress.getLocalHost();
-		} catch (UnknownHostException e) {
-			e.printStackTrace();
-		}
-	}
-
 	public UdpSocket(InetAddress addr, byte[] nic_mac) {
-		
-		
 		try {
-			soc = new DatagramSocket(58238, addr);
-			System.out.println("UDP Socket is opened(port number = " + soc.getLocalPort() + ").");
+			soc = new DatagramSocket(null);
+			soc.setBroadcast(true);
+			soc.bind(new InetSocketAddress(addr, 58238));
+			System.out.println("Bound to UDP port " + soc.getLocalPort() + ".");
 		} catch (SocketException e) {
 			e.printStackTrace();
 		}
