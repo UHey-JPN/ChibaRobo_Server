@@ -5,10 +5,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URLDecoder;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.ProtectionDomain;
 import java.util.Properties;
 
 public class SettingManager {
