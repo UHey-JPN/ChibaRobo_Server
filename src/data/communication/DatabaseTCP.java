@@ -20,7 +20,7 @@ public class DatabaseTCP implements Runnable {
 		this.img_list = img_list;
 		
 		try {
-			listen = new ServerSocket(0, 2);
+			listen = new ServerSocket(58238, 2);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
