@@ -1,7 +1,7 @@
 # This is a sample config file for ChibaRobo_Server.
 
 
-IP_ADDR = 192.168.10.82
+IP_ADDR = 192.168.1.100
 #NIC_MAC = 44:85:00:66:e2:5c
 
 
