@@ -14,13 +14,13 @@ public class DatabaseTCP implements Runnable {
 	private ImageList img_list;
 	private ServerSocket listen;
 	
-	public DatabaseTCP(Executor ex, Database database, ImageList img_list) {
+	public DatabaseTCP(Executor ex, Database database, ImageList img_list, int db_port) {
 		this.ex = ex;
 		this.database = database;
 		this.img_list = img_list;
 		
 		try {
-			listen = new ServerSocket(0, 2);
+			listen = new ServerSocket(db_port, 2);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

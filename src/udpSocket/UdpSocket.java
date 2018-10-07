@@ -17,7 +17,7 @@ public class UdpSocket {
 		try {
 			soc = new DatagramSocket(null);
 			soc.setBroadcast(true);
-			soc.bind(new InetSocketAddress(addr, 58238));
+			soc.bind(new InetSocketAddress(addr, 0));
 			System.out.println("Bound to UDP port " + soc.getLocalPort() + ".");
 		} catch (SocketException e) {
 			e.printStackTrace();

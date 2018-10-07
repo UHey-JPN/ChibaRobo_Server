@@ -86,21 +86,21 @@ public class ChibaRoboServer {
 					
 					if(_addr.equals(nic_addr))
 					{
-						System.out.println("Found NIC matching IP address: " + e.getName() + " : " + e.getDisplayName());
+						System.out.println("Found an NIC with matching IP address: " + e.getName() + " : " + e.getDisplayName());
 						addr = _addr;
 						break;
 					}
 					
 					if(addr == null && mac_matches && _addr instanceof Inet4Address)
 					{
-						System.out.println("Found NIC matching MAC address: " + e.getName() + " : " + e.getDisplayName());
+						System.out.println("Found an NIC with matching MAC address: " + e.getName() + " : " + e.getDisplayName());
 						addr = _addr;
 						break;
 					}
 				}
 			}
 		} catch (Exception e) {
-			System.out.println("An error occurred while trying to get local IP addresses.");
+			System.out.println("An error occurred while trying to get local IP address.");
 			e.printStackTrace();
 		}
 
@@ -114,6 +114,9 @@ public class ChibaRoboServer {
 		}
 
 		System.out.println(addr.getHostName() + "/" + addr.getHostAddress());
+		
+		// use configurable database port number
+		int db_port = Integer.parseInt(SettingManager.getProperties().getProperty("DB_PORT"));
 
 		UdpSocket udp = new UdpSocket(addr, nic_mac);
 
@@ -124,7 +127,7 @@ public class ChibaRoboServer {
 		KeepAliveManager kam = new KeepAliveManager(ex);
 		ShowStateManager ssm = new ShowStateManager(ex, kam, database, udp);
 		DatabaseUdp database_udp = new DatabaseUdp(udp, database, ssm);
-		DatabaseTCP database_tcp = new DatabaseTCP(ex, database, img_list);
+		DatabaseTCP database_tcp = new DatabaseTCP(ex, database, img_list, db_port);
 		ConsoleSocket console = new ConsoleSocket(ex, database, ssm, kam, img_list);
 		Publicity publicity = new Publicity(ex, udp, console.get_local_port(), database_tcp.get_local_port(),
 				kam.get_local_port());
