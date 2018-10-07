@@ -1,7 +1,7 @@
 package main;
 
+import java.io.IOException;
 import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
@@ -21,41 +21,50 @@ public class ChibaRoboServer {
 
 	public ChibaRoboServer() {
 		Executor ex = Executors.newCachedThreadPool();
+
+		System.out.println("Starting ChibaRobo Server...");
+		System.out.println("Applying config...");
+
 		try {
-			InetAddress addr = InetAddress.getLocalHost();
-			System.out.println(addr.getHostName() + "/" + addr.getHostAddress());
-		} catch (UnknownHostException e) {
-			e.printStackTrace();
+			SettingManager.ReadConfiguration(ChibaRoboServer.class);
+		} catch (IOException e1) {
+			System.out.println(
+					"An IOException was thrown while trying to open/read from configuration file. (does the file exist or someone else is using it?)");
+			e1.printStackTrace();
 		}
-		
-		UdpSocket udp = new UdpSocket();
+
+		InetAddress nic_addr = SettingManager.getIpAddr();
+		byte[] nic_mac = SettingManager.getNicMac();
+		int db_port = SettingManager.getDbPort();
+
+		UdpSocket udp = new UdpSocket(nic_addr, nic_mac);
 
 		LogToSystemIO log = new LogToSystemIO();
-		
+
 		ImageList img_list = new ImageList("DB/img/", log);
 		Database database = new Database(24);
 		KeepAliveManager kam = new KeepAliveManager(ex);
 		ShowStateManager ssm = new ShowStateManager(ex, kam, database, udp);
 		DatabaseUdp database_udp = new DatabaseUdp(udp, database, ssm);
-		DatabaseTCP database_tcp = new DatabaseTCP(ex, database, img_list);
+		DatabaseTCP database_tcp = new DatabaseTCP(ex, database, img_list, db_port);
 		ConsoleSocket console = new ConsoleSocket(ex, database, ssm, kam, img_list);
-		Publicity publicity = new Publicity(ex, udp, console.get_local_port(), database_tcp.get_local_port(), kam.get_local_port());
-		
-		try{
+		Publicity publicity = new Publicity(ex, udp, console.get_local_port(), database_tcp.get_local_port(),
+				kam.get_local_port());
+
+		try {
 			new WindowMain(ex, udp, database, kam, ssm, database_udp, database_tcp, console, publicity);
-		} catch (java.awt.HeadlessException e){
+		} catch (java.awt.HeadlessException e) {
 			System.out.println("no window.main mode");
 		}
-		
-		System.out.println("Server System is OK");
 
-		
+		System.out.println("Server System looks OK");
+
 	}
 
 	public static void main(String[] args) {
 		System.setProperty("file.encoding", "UTF-8");
 		new ChibaRoboServer();
-		
+
 	}
 
 }
