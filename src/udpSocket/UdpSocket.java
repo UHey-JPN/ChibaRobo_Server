@@ -3,9 +3,15 @@ package udpSocket;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.NetworkInterface;
 import java.net.SocketException;
+import java.net.UnknownHostException;
+import java.util.Arrays;
+import java.util.Enumeration;
+
 
 public class UdpSocket {
 	private final static String CRLF = "\r\n";
@@ -13,7 +19,56 @@ public class UdpSocket {
 	private DatagramSocket soc;
 	private InetAddress addr;
 
-	public UdpSocket(InetAddress addr, byte[] nic_mac) {
+	public UdpSocket(InetAddress nic_addr, byte[] nic_mac) {
+		InetAddress addr = null;
+		try {
+			// enumerate all NIC
+			Enumeration<NetworkInterface> n = NetworkInterface.getNetworkInterfaces();
+			while ((addr == null || addr.isLoopbackAddress()) && n.hasMoreElements()) {
+				NetworkInterface e = n.nextElement();
+
+				byte[] mac = e.getHardwareAddress();
+				boolean mac_matches = false;
+				if (mac != null && Arrays.equals(mac, nic_mac)) {
+					mac_matches = true;
+				}
+
+				Enumeration<InetAddress> a = e.getInetAddresses();
+				while (a.hasMoreElements()) {
+					InetAddress _addr = a.nextElement();
+
+					if (_addr.equals(nic_addr)) {
+						System.out.println(
+								"Found an NIC with matching IP address: " + e.getName() + " : " + e.getDisplayName());
+						addr = _addr;
+						break;
+					}
+
+					if (addr == null && mac_matches && _addr instanceof Inet4Address) {
+						System.out.println(
+								"Found an NIC with matching MAC address: " + e.getName() + " : " + e.getDisplayName());
+						addr = _addr;
+						break;
+					}
+				}
+			}
+		} catch (Exception e) {
+			System.out.println("An error occurred while trying to get local IP address.");
+			e.printStackTrace();
+			addr = null;
+		}
+
+		if (addr == null) {
+			try {
+				addr = InetAddress.getLocalHost();
+			} catch (UnknownHostException e) {
+				System.out.println("An UnknownHostException was thrown while trying to get local IP addresses.");
+				e.printStackTrace();
+			}
+		}
+
+		System.out.println(addr.getHostName() + "/" + addr.getHostAddress());
+
 		try {
 			soc = new DatagramSocket(null);
 			soc.setBroadcast(true);

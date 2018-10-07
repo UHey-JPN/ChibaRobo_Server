@@ -1,13 +1,7 @@
 package main;
 
 import java.io.IOException;
-import java.net.Inet4Address;
 import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.UnknownHostException;
-import java.nio.ByteBuffer;
-import java.util.Arrays;
-import java.util.Enumeration;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
@@ -39,86 +33,11 @@ public class ChibaRoboServer {
 			e1.printStackTrace();
 		}
 
-		InetAddress addr = null;
-		InetAddress nic_addr = null;
-		byte[] nic_mac = null;
-		String nic_addr_str = SettingManager.getProperties().getProperty("IP_ADDR");
-		String nic_mac_str = SettingManager.getProperties().getProperty("NIC_MAC");
+		InetAddress nic_addr = SettingManager.getIpAddr();
+		byte[] nic_mac = SettingManager.getNicMac();
+		int db_port = SettingManager.getDbPort();
 
-		if (nic_addr_str != null) {
-			try {
-				nic_addr = InetAddress.getByName(nic_addr_str);
-			} catch (UnknownHostException e) {
-				// e.printStackTrace();
-				nic_addr = null;
-			}
-		}
-
-		if (nic_mac_str != null) {
-			try {
-				long nic_mac_long = Long.parseLong(nic_mac_str.replaceAll(":", ""), 16);
-				ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES);
-				buffer.putLong(nic_mac_long);
-				nic_mac = Arrays.copyOfRange(buffer.array(), 2, 8);
-			} catch (Exception e) {
-				// e.printStackTrace();
-				nic_mac = null;
-			}
-		}
-
-		try {
-			// enumerate all NIC
-			Enumeration<NetworkInterface> n = NetworkInterface.getNetworkInterfaces();
-			while ((addr == null || addr.isLoopbackAddress()) && n.hasMoreElements()) {
-				NetworkInterface e = n.nextElement();
-
-				byte[] mac = e.getHardwareAddress();
-				boolean mac_matches = false;
-				if (mac != null && Arrays.equals(mac, nic_mac)) {
-					mac_matches = true;
-				}
-
-				// System.out.println("Using NIC: " + e.getName() + " : " + e.getDisplayName());
-
-				Enumeration<InetAddress> a = e.getInetAddresses();
-				while (a.hasMoreElements()) {
-					InetAddress _addr = a.nextElement();
-					
-					if(_addr.equals(nic_addr))
-					{
-						System.out.println("Found an NIC with matching IP address: " + e.getName() + " : " + e.getDisplayName());
-						addr = _addr;
-						break;
-					}
-					
-					if(addr == null && mac_matches && _addr instanceof Inet4Address)
-					{
-						System.out.println("Found an NIC with matching MAC address: " + e.getName() + " : " + e.getDisplayName());
-						addr = _addr;
-						break;
-					}
-				}
-			}
-		} catch (Exception e) {
-			System.out.println("An error occurred while trying to get local IP address.");
-			e.printStackTrace();
-		}
-
-		if (addr == null) {
-			try {
-				addr = InetAddress.getLocalHost();
-			} catch (UnknownHostException e) {
-				System.out.println("An UnknownHostException was thrown while trying to get local IP addresses.");
-				e.printStackTrace();
-			}
-		}
-
-		System.out.println(addr.getHostName() + "/" + addr.getHostAddress());
-		
-		// use configurable database port number
-		int db_port = Integer.parseInt(SettingManager.getProperties().getProperty("DB_PORT"));
-
-		UdpSocket udp = new UdpSocket(addr, nic_mac);
+		UdpSocket udp = new UdpSocket(nic_addr, nic_mac);
 
 		LogToSystemIO log = new LogToSystemIO();
 
