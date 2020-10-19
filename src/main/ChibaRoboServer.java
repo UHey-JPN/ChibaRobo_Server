@@ -5,6 +5,8 @@ import java.net.InetAddress;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
+import javax.swing.JOptionPane;
+
 import data.communication.DatabaseTCP;
 import data.communication.DatabaseUdp;
 import data.image.ImageList;
@@ -37,16 +39,22 @@ public class ChibaRoboServer {
 		byte[] nic_mac = SettingManager.getNicMac();
 		int db_port = SettingManager.getDbPort();
 
-		UdpSocket udp = new UdpSocket(nic_addr, nic_mac);
-
 		LogToSystemIO log = new LogToSystemIO();
-
 		ImageList img_list = new ImageList("DB/img/", log);
 		Database database = new Database(24);
+		
+		DatabaseTCP database_tcp = null;
+		try {
+			database_tcp = new DatabaseTCP(ex, database, img_list, db_port);
+		} catch (IOException e) {
+			JOptionPane.showMessageDialog(null, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+			System.exit(-1);
+		}
+
+		UdpSocket udp = new UdpSocket(nic_addr, nic_mac);
 		KeepAliveManager kam = new KeepAliveManager(ex);
 		ShowStateManager ssm = new ShowStateManager(ex, kam, database, udp);
 		DatabaseUdp database_udp = new DatabaseUdp(udp, database, ssm);
-		DatabaseTCP database_tcp = new DatabaseTCP(ex, database, img_list, db_port);
 		ConsoleSocket console = new ConsoleSocket(ex, database, ssm, kam, img_list);
 		Publicity publicity = new Publicity(ex, udp, console.get_local_port(), database_tcp.get_local_port(),
 				kam.get_local_port());

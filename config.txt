@@ -1,7 +1,7 @@
 # This is a sample config file for ChibaRobo_Server.
 
 DB_PORT = 58238
-IP_ADDR = 192.168.1.100
+IP_ADDR = 192.168.10.117
 #NIC_MAC = 44:85:00:66:e2:5c
 
 

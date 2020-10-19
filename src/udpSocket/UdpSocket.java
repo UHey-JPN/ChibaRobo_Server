@@ -12,12 +12,13 @@ import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.Enumeration;
 
-
 public class UdpSocket {
 	private final static String CRLF = "\r\n";
 	private final static int SOC_PORT = 58239;
 	private DatagramSocket soc;
 	private InetAddress addr;
+	private byte[] mac_addr;
+	private NetworkInterface nic;
 
 	public UdpSocket(InetAddress nic_addr, byte[] nic_mac) {
 		InetAddress addr = null;
@@ -27,12 +28,10 @@ public class UdpSocket {
 			while ((addr == null || addr.isLoopbackAddress()) && n.hasMoreElements()) {
 				NetworkInterface e = n.nextElement();
 
-				byte[] mac = e.getHardwareAddress();
-				boolean mac_matches = false;
-				if (mac != null && Arrays.equals(mac, nic_mac)) {
-					mac_matches = true;
-				}
+				byte[] _mac = e.getHardwareAddress();
+				boolean mac_matches = (_mac != null && nic_mac != null && Arrays.equals(_mac, nic_mac));
 
+				// enumerate all addresses which are assigned to the current NIC element.
 				Enumeration<InetAddress> a = e.getInetAddresses();
 				while (a.hasMoreElements()) {
 					InetAddress _addr = a.nextElement();
@@ -40,6 +39,8 @@ public class UdpSocket {
 					if (_addr.equals(nic_addr)) {
 						System.out.println(
 								"Found an NIC with matching IP address: " + e.getName() + " : " + e.getDisplayName());
+						nic = e;
+						mac_addr = _mac;
 						addr = _addr;
 						break;
 					}
@@ -47,6 +48,8 @@ public class UdpSocket {
 					if (addr == null && mac_matches && _addr instanceof Inet4Address) {
 						System.out.println(
 								"Found an NIC with matching MAC address: " + e.getName() + " : " + e.getDisplayName());
+						nic = e;
+						mac_addr = _mac;
 						addr = _addr;
 						break;
 					}
@@ -81,6 +84,14 @@ public class UdpSocket {
 		this.addr = addr;
 	}
 
+	public NetworkInterface getNic() {
+		return this.nic;
+	}
+	
+	public byte[] getMacAddress() {
+		return this.mac_addr;
+	}
+	
 	public InetAddress get_inet_address() {
 		return this.addr;
 	}
